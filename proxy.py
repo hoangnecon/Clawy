@@ -197,37 +197,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                         print(f"OpenClaw requested model: {target_model_name}", flush=True)
                         
                     if "messages" in payload:
-                        # --- CLAUDE CONTEXT TRUNCATION ---
-                        # Claude models have strict TPM limits compared to Gemini's 2M limit. 
-                        # We must truncate OpenClaw's aggressive 64k history specifically for Claude.
-                        if target_model_name and "claude" in target_model_name.lower():
-                            max_chars = 40000 
-                            pruned_messages = []
-                            current_chars = 0
-                            
-                            if len(payload["messages"]) > 0 and payload["messages"][0].get("role") == "system":
-                                sys_msg = payload["messages"].pop(0)
-                                pruned_messages.append(sys_msg)
-                                current_chars += len(sys_msg.get("content", ""))
-                                
-                            reversed_kept = []
-                            for msg in reversed(payload["messages"]):
-                                msg_content = msg.get("content", "")
-                                msg_len = len(msg_content)
-                                if current_chars + msg_len > max_chars:
-                                    # If this is the newest message and it exceeds the limit, truncate the string itself.
-                                    if len(reversed_kept) == 0:
-                                        allowed = max_chars - current_chars
-                                        if allowed < 1000: allowed = 1000
-                                        msg["content"] = msg_content[-allowed:]
-                                        reversed_kept.insert(0, msg)
-                                    break
-                                reversed_kept.insert(0, msg)
-                                current_chars += msg_len
-                                
-                            payload["messages"] = pruned_messages + reversed_kept
-                            modified = True
-                        # ---------------------------------
                         
                         for msg in payload["messages"]:
                             if msg.get("role") == "assistant" and msg.get("content"):
