@@ -27,6 +27,15 @@ def get_user_context():
                         break
                         
         # Get quota %
+        quota_str = get_quota_for_email(account_email).replace(account_email, "")
+    except Exception as e:
+        print(f"Error reading Antigravity context: {e}")
+        
+    return f" - {account_email}{quota_str}"
+
+def get_quota_for_email(account_email):
+    quota_str = ""
+    try:
         warmup_file = os.path.expanduser("~/.antigravity_tools/warmup_history.json")
         if os.path.exists(warmup_file):
             with open(warmup_file, 'r') as f:
@@ -40,7 +49,7 @@ def get_user_context():
     except Exception as e:
         print(f"Error reading Antigravity context: {e}")
         
-    return f" - {account_email}{quota_str}"
+    return f"{account_email}{quota_str}"
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -114,7 +123,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(response.status)
                 
                 is_chunked = False
+                account_email = "Unknown User"
                 for key, val in response.headers.items():
+                    if key.lower() == 'x-account-email':
+                        account_email = val
                     if key.lower() == 'transfer-encoding' and val.lower() == 'chunked':
                         is_chunked = True
                         self.send_header(key, val)
@@ -143,7 +155,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     # The SSE event looks like: data: {"choices":[{"delta":{},"finish_reason":"stop"}]}
                     if b'finish_reason":"stop"' in line or b'finish_reason": "stop"' in line:
                         # We must inject our own valid SSE event right BEFORE we send this chunk
-                        context = get_user_context().strip(" - ")
+                        context = get_quota_for_email(account_email)
                         footnote = f'\\n---\\n**Account:** {context}\\n'
                         injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"gemini-3.1-pro"}}\n\n'.encode('utf-8')
                         
