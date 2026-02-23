@@ -131,7 +131,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                                 model["max_tokens"] = INJECTED_MAX_TOKENS
                             
                             # Inject specific Gemini model aliases
-                            custom_models = ["gemini-3.1-pro", "gemini-2.5-flash", "gemini-1.5-pro", "gemini-1.5-flash"]
+                            custom_models = ["gemini-3.1-pro", "gemini-3.1-pro-high", "gemini-3.1-pro-low", "claude-opus-4-6-thinking", "claude-sonnet-4-6", "gemini-2.5-flash", "gemini-1.5-pro", "gemini-1.5-flash"]
                             existing_ids = {m.get("id") for m in data["data"]}
                             
                             for custom_model in custom_models:
