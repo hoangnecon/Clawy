@@ -11,9 +11,9 @@ LISTEN_PORT = 8046
 INJECTED_CONTEXT_WINDOW = 128000
 INJECTED_MAX_TOKENS = 8192
 
-def get_user_context():
+def get_current_account_id_and_email():
+    account_id = None
     account_email = "Unknown User"
-    quota_str = ""
     try:
         # Get active email
         accounts_file = os.path.expanduser("~/.antigravity_tools/accounts.json")
@@ -21,10 +21,21 @@ def get_user_context():
             with open(accounts_file, 'r') as f:
                 data = json.load(f)
                 curr_id = data.get("current_account_id")
-                for acc in data.get("accounts", []):
-                    if acc.get("id") == curr_id:
-                        account_email = acc.get("email", "Unknown User")
-                        break
+                if curr_id:
+                    account_id = curr_id
+                    for acc in data.get("accounts", []):
+                        if acc.get("id") == curr_id:
+                            account_email = acc.get("email", "Unknown User")
+                            break
+    except Exception as e:
+        print(f"Error reading Antigravity accounts: {e}")
+        
+    return account_id, account_email
+
+def get_user_context():
+    account_id, account_email = get_current_account_id_and_email()
+    quota_str = ""
+    try:
                         
         # Get quota %
         quota_str = get_quota_for_email(account_email).replace(account_email, "")
@@ -54,8 +65,11 @@ def get_quota_for_email(account_email):
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         url = f"http://{TARGET_HOST}:{TARGET_PORT}{self.path}"
+        
+        headers_dict = dict(self.headers)
+        
         try:
-            req = urllib.request.Request(url, headers=self.headers)
+            req = urllib.request.Request(url, headers=headers_dict)
             with urllib.request.urlopen(req) as response:
                 body = response.read()
                 
@@ -117,20 +131,32 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = self.rfile.read(content_length)
         
+        headers_dict = dict(self.headers)
+        
         try:
-            req = urllib.request.Request(url, data=post_data, headers=self.headers, method='POST')
+            # Remove X-Account-Id injection for POST requests to allow Antigravity to balance traffic
+            if self.path.startswith("/v1/chat/completions") or self.path.startswith("/v1/completions"):
+                if "x-account-id" in headers_dict:
+                    del headers_dict["x-account-id"]
+                if "X-Account-Id" in headers_dict:
+                    del headers_dict["X-Account-Id"]
+
+            req = urllib.request.Request(url, data=post_data, headers=headers_dict, method='POST')
             with urllib.request.urlopen(req) as response:
                 self.send_response(response.status)
                 
                 is_chunked = False
                 account_email = "Unknown User"
+                
+                # Iterate and extract x-account-email case-insensitively
                 for key, val in response.headers.items():
-                    if key.lower() == 'x-account-email':
+                    lower_key = key.lower()
+                    if lower_key == 'x-account-email':
                         account_email = val
-                    if key.lower() == 'transfer-encoding' and val.lower() == 'chunked':
+                    if lower_key == 'transfer-encoding' and val.lower() == 'chunked':
                         is_chunked = True
                         self.send_header(key, val)
-                    elif key.lower() not in ['connection']:
+                    elif lower_key not in ['connection']:
                         self.send_header(key, val)
                 
                 # If the upstream didn't chunk but we want to simulate streaming? 
@@ -144,32 +170,43 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 
                 # We are processing HTTP chunked transfer from Antigravity.
-                # `urllib` auto-decodes the incoming chunks, so `response.readline()` gives us raw SSE events.
+                # `urllib` auto-decodes the incoming chunks.
                 # Since we passed `Transfer-Encoding: chunked` to the client, we must manually re-encode the chunks!
+                buffer = b""
                 while True:
-                    line = response.readline()
-                    if not line:
+                    chunk = response.read(1)
+                    if not chunk:
+                        if buffer:
+                            self.wfile.write(f"{len(buffer):X}\r\n".encode())
+                            self.wfile.write(buffer)
+                            self.wfile.write(b"\r\n")
                         break
                     
-                    # Inspect chunk_data for the magic SSE finish
-                    # The SSE event looks like: data: {"choices":[{"delta":{},"finish_reason":"stop"}]}
-                    if b'finish_reason":"stop"' in line or b'finish_reason": "stop"' in line:
-                        # We must inject our own valid SSE event right BEFORE we send this chunk
-                        context = get_quota_for_email(account_email)
-                        footnote = f'\\n---\\n**Account:** {context}\\n'
-                        injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"gemini-3.1-pro"}}\n\n'.encode('utf-8')
+                    buffer += chunk
+                    
+                    # Yield complete SSE events separated by double newlines
+                    if buffer.endswith(b"\n\n"):
+                        # Inspect buffer for the magic SSE finish
+                        if b'finish_reason":"stop"' in buffer or b'finish_reason": "stop"' in buffer:
+                            # We must inject our own valid SSE event right BEFORE we send this chunk
+                            context = get_quota_for_email(account_email)
+                            footnote = f'\\n---\\n**Account:** {context}\\n'
+                            injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"gemini-3.1-pro"}}\n\n'.encode('utf-8')
+                            
+                            # Send injected HTTP chunk
+                            self.wfile.write(f"{len(injected_sse):X}\r\n".encode())
+                            self.wfile.write(injected_sse)
+                            self.wfile.write(b"\r\n")
                         
-                        # Send injected HTTP chunk
-                        self.wfile.write(f"{len(injected_sse):X}\r\n".encode())
-                        self.wfile.write(injected_sse)
+                        # Send actual HTTP chunk
+                        self.wfile.write(f"{len(buffer):X}\r\n".encode())
+                        self.wfile.write(buffer)
                         self.wfile.write(b"\r\n")
-                    
-                    # Send actual HTTP chunk
-                    self.wfile.write(f"{len(line):X}\r\n".encode())
-                    self.wfile.write(line)
-                    self.wfile.write(b"\r\n")
-                    
-                # Send the final zero-length chunk to close the stream
+                        
+                        # Reset buffer for next SSE event
+                        buffer = b""
+                        
+                # Send the final zero-length chunk to close the HTTP stream
                 self.wfile.write(b"0\r\n\r\n")
                 
         except urllib.error.HTTPError as e:
