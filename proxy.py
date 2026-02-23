@@ -199,16 +199,23 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                         for msg in payload["messages"]:
                             if msg.get("role") == "assistant" and msg.get("content"):
                                 content = msg["content"]
-                                if "**Account:**" in content:
-                                    if "\n\n---\n\n**Account:**" in content:
-                                        msg["content"] = content.split("\n\n---\n\n**Account:**")[0]
-                                        modified = True
-                                    elif "\n---\n**Account:**" in content:
-                                        msg["content"] = content.split("\n---\n**Account:**")[0]
-                                        modified = True
-                                    elif "---\n**Account:**" in content:
-                                        msg["content"] = content.split("---\n**Account:**")[0]
-                                        modified = True
+                                if isinstance(content, str):
+                                    idx = content.find("**Account:**")
+                                    if idx != -1:
+                                        sep_idx = content.rfind("---", 0, idx)
+                                        if sep_idx != -1:
+                                            msg["content"] = content[:sep_idx].rstrip()
+                                            modified = True
+                                elif isinstance(content, list):
+                                    for part in content:
+                                        part_text = part.get("text", "")
+                                        if part.get("type") == "text" and isinstance(part_text, str):
+                                            idx = part_text.find("**Account:**")
+                                            if idx != -1:
+                                                sep_idx = part_text.rfind("---", 0, idx)
+                                                if sep_idx != -1:
+                                                    part["text"] = part_text[:sep_idx].rstrip()
+                                                    modified = True
                     if modified:
                         post_data = json.dumps(payload).encode('utf-8')
                         headers_dict['Content-Length'] = str(len(post_data))
