@@ -1,2 +1,4 @@
-127.0.0.1 - - [23/Feb/2026 20:29:01] "GET /v1/models HTTP/1.1" 200 -
-127.0.0.1 - - [23/Feb/2026 20:29:48] "POST /v1/chat/completions HTTP/1.1" 200 -
+Starting OpenClaw AntiGravity Context Bridge on port 8046 -> forwarding to localhost:8045
+Injecting context_window: 128000 and max_tokens: 8192
+OpenClaw requested model: claude-opus-4-6-thinking
+127.0.0.1 - - [23/Feb/2026 20:52:45] "POST /v1/chat/completions HTTP/1.1" 200 -
