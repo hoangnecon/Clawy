@@ -111,8 +111,6 @@ def get_quota_for_email(account_email, target_model=None):
             "my-opus": "claude-opus-4-6-thinking",
             "my-sonnet": "claude-sonnet-4-6",
             "my-gemini-3-flash": "gemini-3-flash",
-            "my-gemini-2.5-flash": "gemini-2.5-flash",
-            "my-gemini-3.1-pro": "gemini-3.1-pro",
             "my-gemini-3.1-pro-high": "gemini-3.1-pro-high",
             "my-gemini-3.1-pro-low": "gemini-3.1-pro-low"
         }
@@ -151,7 +149,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                                 model["max_tokens"] = INJECTED_MAX_TOKENS
                             
                             # Inject specific Gemini model aliases
-                            custom_models = ["gemini-3.1-pro", "gemini-3.1-pro-high", "gemini-3.1-pro-low", "claude-opus-4-6-thinking", "claude-sonnet-4-6", "gemini-2.5-flash", "gemini-1.5-pro", "gemini-1.5-flash"]
+                            custom_models = ["gemini-3.1-pro-high", "gemini-3.1-pro-low", "claude-opus-4-6-thinking", "claude-sonnet-4-6", "gemini-1.5-pro", "gemini-1.5-flash"]
                             existing_ids = {m.get("id") for m in data["data"]}
                             
                             for custom_model in custom_models:
@@ -188,11 +186,13 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(body)
                 
         except urllib.error.HTTPError as e:
+            error_body = e.read()
+            print(f"Antigravity API HTTPError: {e.code} - {error_body.decode('utf-8', errors='ignore')}", flush=True)
             self.send_response(e.code)
             for key, val in e.headers.items():
                 self.send_header(key, val)
             self.end_headers()
-            self.wfile.write(e.read())
+            self.wfile.write(error_body)
             
     def do_POST(self):
         url = f"http://{TARGET_HOST}:{TARGET_PORT}{self.path}"
@@ -207,36 +207,11 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 # Strip old footnotes from chat history to prevent LLM hallucinations
                 try:
                     payload = json.loads(post_data)
-                    modified = False
                     if "model" in payload:
                         target_model_name = payload["model"]
-                    if "messages" in payload:
                         
-                        for msg in payload["messages"]:
-                            if msg.get("role") == "assistant" and msg.get("content"):
-                                content = msg["content"]
-                                if isinstance(content, str):
-                                    idx = content.find("**Account:**")
-                                    if idx != -1:
-                                        sep_idx = content.rfind("---", 0, idx)
-                                        if sep_idx != -1:
-                                            msg["content"] = content[:sep_idx].rstrip()
-                                            modified = True
-                                elif isinstance(content, list):
-                                    for part in content:
-                                        part_text = part.get("text", "")
-                                        if part.get("type") == "text" and isinstance(part_text, str):
-                                            idx = part_text.find("**Account:**")
-                                            if idx != -1:
-                                                sep_idx = part_text.rfind("---", 0, idx)
-                                                if sep_idx != -1:
-                                                    part["text"] = part_text[:sep_idx].rstrip()
-                                                    modified = True
-                    if modified:
-                        post_data = json.dumps(payload).encode('utf-8')
-                        headers_dict['Content-Length'] = str(len(post_data))
                 except Exception as e:
-                    print(f"Error stripping history footnotes: {e}")
+                    print(f"Error reading model name: {e}")
                     
                 if "x-account-id" in headers_dict:
                     del headers_dict["x-account-id"]
@@ -320,10 +295,13 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.wfile.write(b"0\r\n\r\n")
                 
         except urllib.error.HTTPError as e:
+            error_body = e.read()
+            print(f"Antigravity API HTTPError: {e.code} - {error_body.decode('utf-8', errors='ignore')}", flush=True)
             self.send_response(e.code)
             for key, val in e.headers.items():
                 self.send_header(key, val)
             self.end_headers()
+            self.wfile.write(error_body)
 
 if __name__ == '__main__':
     print(f"Starting OpenClaw AntiGravity Context Bridge on port {LISTEN_PORT} -> forwarding to {TARGET_HOST}:{TARGET_PORT}")
