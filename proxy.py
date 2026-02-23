@@ -104,10 +104,11 @@ def get_quota_for_email(account_email, target_model=None):
             if name:
                 percentages[name] = model.get("percentage", 100)
                 
-        if target_model and target_model in percentages:
-            percentage = percentages[target_model]
+        target_model_clean = target_model.split("/")[-1] if target_model else None
+        if target_model_clean and target_model_clean in percentages:
+            percentage = percentages[target_model_clean]
         else:
-            percentage = percentages.get("gemini-3.1-pro-high", percentages.get("gemini-3-pro-high", 100))
+            percentage = percentages.get("gemini-3.1-pro-high", 100)
             
         return f" - {percentage}%"
     except Exception as e:
