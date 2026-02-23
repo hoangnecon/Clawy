@@ -42,6 +42,9 @@ echo "[3/4] Optimizing Context Compaction for Deep Context..."
 # Modify OpenClaw config to maximize context usage and disable aggressive pruning
 jq '.agents.defaults.compaction = {"mode": "default", "maxHistoryShare": 0.9, "reserveTokens": 4096, "keepRecentTokens": 64000}' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
 
+# Hard-patch the models config to 128000 context because OpenClaw auto-discovery fails on unrecognized config providers
+jq '(.models.providers.antigravity.models[] | select(.id=="gemini-3.1-pro")).contextWindow = 128000 | (.models.providers.antigravity.models[] | select(.id=="gemini-3.1-pro")).maxTokens = 8192' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
+
 echo "[4/4] Setting Default Primary Model and Restarting Gateway..."
 openclaw config set agents.defaults.model.primary antigravity/gemini-3.1-pro
 openclaw gateway restart
