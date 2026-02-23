@@ -134,12 +134,16 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         headers_dict = dict(self.headers)
         
         try:
-            # Remove X-Account-Id injection for POST requests to allow Antigravity to balance traffic
             if self.path.startswith("/v1/chat/completions") or self.path.startswith("/v1/completions"):
                 if "x-account-id" in headers_dict:
                     del headers_dict["x-account-id"]
                 if "X-Account-Id" in headers_dict:
                     del headers_dict["X-Account-Id"]
+                    
+                # Enforce the selected GUI account by passing X-Account-Id to Antigravity
+                account_id, _ = get_current_account_id_and_email()
+                if account_id:
+                    headers_dict['X-Account-Id'] = account_id
 
             req = urllib.request.Request(url, data=post_data, headers=headers_dict, method='POST')
             with urllib.request.urlopen(req) as response:
