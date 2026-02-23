@@ -207,11 +207,37 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 # Strip old footnotes from chat history to prevent LLM hallucinations
                 try:
                     payload = json.loads(post_data)
+                    modified = False
                     if "model" in payload:
                         target_model_name = payload["model"]
-                        
+                    if "messages" in payload:
+                        for msg in payload["messages"]:
+                            if msg.get("role") == "assistant" and msg.get("content"):
+                                content = msg["content"]
+                                if isinstance(content, str):
+                                    idx = content.find("**Account:**")
+                                    if idx != -1:
+                                        sep_idx = content.rfind("---", 0, idx)
+                                        if sep_idx != -1:
+                                            new_content = content[:sep_idx].rstrip()
+                                            msg["content"] = new_content if new_content else " "
+                                            modified = True
+                                elif isinstance(content, list):
+                                    for part in content:
+                                        part_text = part.get("text", "")
+                                        if part.get("type") == "text" and isinstance(part_text, str):
+                                            idx = part_text.find("**Account:**")
+                                            if idx != -1:
+                                                sep_idx = part_text.rfind("---", 0, idx)
+                                                if sep_idx != -1:
+                                                    new_text = part_text[:sep_idx].rstrip()
+                                                    part["text"] = new_text if new_text else " "
+                                                    modified = True
+                    if modified:
+                        post_data = json.dumps(payload).encode('utf-8')
+                        headers_dict['Content-Length'] = str(len(post_data))
                 except Exception as e:
-                    print(f"Error reading model name: {e}")
+                    print(f"Error parsing history: {e}")
                     
                 if "x-account-id" in headers_dict:
                     del headers_dict["x-account-id"]

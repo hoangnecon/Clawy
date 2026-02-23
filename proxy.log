@@ -1,8 +1,1 @@
-Starting OpenClaw AntiGravity Context Bridge on port 8046 -> forwarding to localStarting OpenClaw AntiGravity Context Bridge on port 8046 -> forwarding to localhost:8045
-Injecting context_window: 128000 and max_tokens: 8192
-Antigravity API HTTPError: 400 - {"error":{"message":"{\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"{\\\"type\\\":\\\"error\\\",\\\"error\\\":{\\\"type\\\":\\\"invalid_request_error\\\",\\\"message\\\":\\\"messages.114.content.0.text.text: Field required\\\"},\\\"request_id\\\":\\\"req_vrtx_011CYRDyMKWCx3fTXFtEPwR5\\\"}\",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}\n","type":"upstream_error","code":400}}
-127.0.0.1 - - [23/Feb/2026 22:18:33] "POST /v1/chat/completions HTTP/1.1" 400 -
-"/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socketserver.py", line 478, in server_bind
-    self.socket.bind(self.server_address)
-    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
-OSError: [Errno 48] Address already in use
+127.0.0.1 - - [23/Feb/2026 22:20:37] "POST /v1/chat/completions HTTP/1.1" 200 -
