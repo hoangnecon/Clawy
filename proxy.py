@@ -135,6 +135,30 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         
         try:
             if self.path.startswith("/v1/chat/completions") or self.path.startswith("/v1/completions"):
+                # Strip old footnotes from chat history to prevent LLM hallucinations
+                try:
+                    payload = json.loads(post_data)
+                    modified = False
+                    if "messages" in payload:
+                        for msg in payload["messages"]:
+                            if msg.get("role") == "assistant" and msg.get("content"):
+                                content = msg["content"]
+                                if "**Account:**" in content:
+                                    if "\n\n---\n\n**Account:**" in content:
+                                        msg["content"] = content.split("\n\n---\n\n**Account:**")[0]
+                                        modified = True
+                                    elif "\n---\n**Account:**" in content:
+                                        msg["content"] = content.split("\n---\n**Account:**")[0]
+                                        modified = True
+                                    elif "---\n**Account:**" in content:
+                                        msg["content"] = content.split("---\n**Account:**")[0]
+                                        modified = True
+                    if modified:
+                        post_data = json.dumps(payload).encode('utf-8')
+                        headers_dict['Content-Length'] = str(len(post_data))
+                except Exception as e:
+                    print(f"Error stripping history footnotes: {e}")
+                    
                 if "x-account-id" in headers_dict:
                     del headers_dict["x-account-id"]
                 if "X-Account-Id" in headers_dict:
@@ -194,7 +218,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                         if b'finish_reason":"stop"' in buffer or b'finish_reason": "stop"' in buffer:
                             # We must inject our own valid SSE event right BEFORE we send this chunk
                             context = get_quota_for_email(account_email)
-                            footnote = f'\\n---\\n**Account:** {context}\\n'
+                            footnote = f'\\n\\n---\\n\\n**Account:** {context}\\n'
                             injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"gemini-3.1-pro"}}\n\n'.encode('utf-8')
                             
                             # Send injected HTTP chunk
