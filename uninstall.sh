@@ -19,13 +19,14 @@ fi
 
 echo "[2/3] Reverting OpenClaw Config to Defaults..."
 if [ -f ~/.openclaw/openclaw.json ]; then
-    # Reset compaction back to safeguard
-    jq '.agents.defaults.compaction = {"mode": "safeguard"}' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
+    # Reset compaction back to safeguard and delete explicit model overrides
+    jq '.agents.defaults.compaction = {"mode": "safeguard"} | del(.agents.defaults.models["antigravity/gemini-3.1-pro", "openai/gemini-3.1-pro"])' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
     
-    # Remove the antigravity custom provider
-    jq 'del(.models.providers.antigravity) | del(.models.providers.openai)' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
-
-    echo "✅ Removed custom providers and reset compaction."
+    # Remove the antigravity and openai custom providers
+    if [ -f ~/.openclaw/agents/main/agent/models.json ]; then
+        jq 'del(.providers.antigravity) | del(.providers.openai)' ~/.openclaw/agents/main/agent/models.json > ~/.openclaw/agents/main/agent/models.json.tmp && mv ~/.openclaw/agents/main/agent/models.json.tmp ~/.openclaw/agents/main/agent/models.json
+        echo "✅ Removed custom provider configurations from agent models.json."
+    fi
 else
     echo "⚠️ ~/.openclaw/openclaw.json not found. Skipping config modification."
 fi
