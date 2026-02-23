@@ -39,28 +39,48 @@ def get_user_context():
                         
         # Get quota %
         quota_str = get_quota_for_email(account_email).replace(account_email, "")
+        quota_str = get_quota_for_email(account_email)
     except Exception as e:
         print(f"Error reading Antigravity context: {e}")
         
     return f" - {account_email}{quota_str}"
 
 def get_quota_for_email(account_email):
-    quota_str = ""
     try:
-        warmup_file = os.path.expanduser("~/.antigravity_tools/warmup_history.json")
-        if os.path.exists(warmup_file):
-            with open(warmup_file, 'r') as f:
-                wdata = json.load(f)
-                for key in wdata.keys():
-                    if account_email in key and "gemini" in key:
-                        parts = key.split(':')
-                        if len(parts) >= 3:
-                            quota_str = f" - {parts[2]}%"
-                            break
+        accounts_file = os.path.expanduser("~/.antigravity_tools/accounts.json")
+        if not os.path.exists(accounts_file):
+            return ""
+            
+        with open(accounts_file, 'r') as f:
+            data = json.load(f)
+            
+        account_id = None
+        for acc in data.get("accounts", []):
+            if acc.get("email") == account_email:
+                account_id = acc.get("id")
+                break
+                
+        if not account_id:
+            return ""
+            
+        detail_file = os.path.expanduser(f"~/.antigravity_tools/accounts/{account_id}.json")
+        if not os.path.exists(detail_file):
+            return ""
+            
+        with open(detail_file, 'r') as f:
+            detail_data = json.load(f)
+            
+        percentages = {}
+        for model in detail_data.get("quota", {}).get("models", []):
+            name = model.get("name")
+            if name:
+                percentages[name] = model.get("percentage", 100)
+                
+        percentage = percentages.get("gemini-3.1-pro-high", percentages.get("gemini-3-pro-high", 100))
+        return f" - {percentage}%"
     except Exception as e:
-        print(f"Error reading Antigravity context: {e}")
-        
-    return f"{account_email}{quota_str}"
+        print(f"Error reading Antigravity quota: {e}")
+        return ""
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -218,7 +238,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                         if b'finish_reason":"stop"' in buffer or b'finish_reason": "stop"' in buffer:
                             # We must inject our own valid SSE event right BEFORE we send this chunk
                             context = get_quota_for_email(account_email)
-                            footnote = f'\\n\\n---\\n\\n**Account:** {context}\\n'
+                            footnote = f'\\n\\n---\\n\\n**Account:** {account_email}{context}\\n'
                             injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"gemini-3.1-pro"}}\n\n'.encode('utf-8')
                             
                             # Send injected HTTP chunk
