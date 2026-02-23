@@ -194,8 +194,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     modified = False
                     if "model" in payload:
                         target_model_name = payload["model"]
-                        print(f"OpenClaw requested model: {target_model_name}", flush=True)
-                        
                     if "messages" in payload:
                         
                         for msg in payload["messages"]:
@@ -229,7 +227,6 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     
             # Isolate the proxy to use specifically the current account ID
             restrict_proxy_to_current_account()
-
             req = urllib.request.Request(url, data=post_data, headers=headers_dict, method='POST')
             with urllib.request.urlopen(req) as response:
                 self.send_response(response.status)
