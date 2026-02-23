@@ -1,1 +1,139 @@
-127.0.0.1 - - [23/Feb/2026 22:20:37] "POST /v1/chat/completions HTTP/1.1" 200 -
+127.0.0.1 - - [23/Feb/2026 22:26:14] "POST /v1/chat/completions HTTP/1.1" 200 -
+127.0.0.1 - - [23/Feb/2026 22:26:23] "POST /v1/chat/completions HTTP/1.1" 200 -
+127.0.0.1 - - [23/Feb/2026 22:26:29] "POST /v1/chat/completions HTTP/1.1" 200 -
+127.0.0.1 - - [23/Feb/2026 22:26:31] "POST /v1/chat/completions HTTP/1.1" 200 -
+127.0.0.1 - - [23/Feb/2026 22:26:34] "POST /v1/chat/completions HTTP/1.1" 200 -
+Starting OpenClaw AntiGravity Context Bridge on port 8046 -> forwarding to localhost:8045
+Injecting context_window: 128000 and max_tokens: 8192
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 429: {
+  "error": {
+    "code": 429,
+    "message": "You have exhausted your capacity on this model. Your quota will reset after 8m34s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "QUOTA_EXHAUSTED",
+        "domain": "cloudcode-pa.googleapis.com",
+        "metadata": {
+          "uiMessage": "true",
+          "model": "gemini-3.1-pro-high",
+          "quotaResetDelay": "8m34.5442561s",
+          "quotaResetTimeStamp": "2026-02-23T15:36:28Z"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "514.544256100s"
+      }
+    ]
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:28:23] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 429: {
+  "error": {
+    "code": 429,
+    "message": "You have exhausted your capacity on this model. Your quota will reset after 8m0s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "QUOTA_EXHAUSTED",
+        "domain": "cloudcode-pa.googleapis.com",
+        "metadata": {
+          "uiMessage": "true",
+          "model": "gemini-3.1-pro-high",
+          "quotaResetDelay": "8m0.604137003s",
+          "quotaResetTimeStamp": "2026-02-23T15:36:28Z"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "480.604137003s"
+      }
+    ]
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:28:57] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 400: {
+  "error": {
+    "code": 400,
+    "message": "Corrupted thought signature.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:29:04] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 400: {
+  "error": {
+    "code": 400,
+    "message": "Corrupted thought signature.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:29:10] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 400: {
+  "error": {
+    "code": 400,
+    "message": "Corrupted thought signature.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:29:30] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 400: {
+  "error": {
+    "code": 400,
+    "message": "Corrupted thought signature.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:29:35] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 400: {
+  "error": {
+    "code": 400,
+    "message": "Corrupted thought signature.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:29:42] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 429: {
+  "error": {
+    "code": 429,
+    "message": "You have exhausted your capacity on this model. Your quota will reset after 1h0m13s.",
+    "status": "RESOURCE_EXHAUSTED",
+    "details": [
+      {
+        "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+        "reason": "QUOTA_EXHAUSTED",
+        "domain": "cloudcode-pa.googleapis.com",
+        "metadata": {
+          "model": "gemini-3.1-pro-high",
+          "quotaResetDelay": "1h0m13.164586825s",
+          "quotaResetTimeStamp": "2026-02-23T16:30:00Z",
+          "uiMessage": "true"
+        }
+      },
+      {
+        "@type": "type.googleapis.com/google.rpc.RetryInfo",
+        "retryDelay": "3613.164586825s"
+      }
+    ]
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:30:16] "POST /v1/chat/completions HTTP/1.1" 429 -
+Antigravity API HTTPError: 429 - All accounts exhausted. Last error: HTTP 400: {
+  "error": {
+    "code": 400,
+    "message": "Corrupted thought signature.",
+    "status": "INVALID_ARGUMENT"
+  }
+}
+
+127.0.0.1 - - [23/Feb/2026 22:31:03] "POST /v1/chat/completions HTTP/1.1" 429 -

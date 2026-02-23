@@ -220,7 +220,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                                         sep_idx = content.rfind("---", 0, idx)
                                         if sep_idx != -1:
                                             new_content = content[:sep_idx].rstrip()
-                                            msg["content"] = new_content if new_content else " "
+                                            msg["content"] = new_content if new_content else "..."
                                             modified = True
                                 elif isinstance(content, list):
                                     for part in content:
@@ -231,7 +231,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                                                 sep_idx = part_text.rfind("---", 0, idx)
                                                 if sep_idx != -1:
                                                     new_text = part_text[:sep_idx].rstrip()
-                                                    part["text"] = new_text if new_text else " "
+                                                    part["text"] = new_text if new_text else "..."
                                                     modified = True
                     if modified:
                         post_data = json.dumps(payload).encode('utf-8')
@@ -239,18 +239,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     print(f"Error parsing history: {e}")
                     
-                if "x-account-id" in headers_dict:
-                    del headers_dict["x-account-id"]
-                if "X-Account-Id" in headers_dict:
-                    del headers_dict["X-Account-Id"]
-                    
-                # Enforce the selected GUI account by passing X-Account-Id to Antigravity
-                account_id, _ = get_current_account_id_and_email()
-                if account_id:
-                    headers_dict['X-Account-Id'] = account_id
-                    
             # Isolate the proxy to use specifically the current account ID
-            restrict_proxy_to_current_account()
             req = urllib.request.Request(url, data=post_data, headers=headers_dict, method='POST')
             with urllib.request.urlopen(req) as response:
                 self.send_response(response.status)
