@@ -26,6 +26,20 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                             for model in data["data"]:
                                 model["context_window"] = INJECTED_CONTEXT_WINDOW
                                 model["max_tokens"] = INJECTED_MAX_TOKENS
+                            
+                            # Inject specific Gemini model aliases
+                            custom_models = ["gemini-3.1-pro", "gemini-2.5-flash", "gemini-1.5-pro", "gemini-1.5-flash"]
+                            existing_ids = {m.get("id") for m in data["data"]}
+                            for custom_model in custom_models:
+                                if custom_model not in existing_ids:
+                                    data["data"].append({
+                                        "id": custom_model,
+                                        "object": "model",
+                                        "created": 1706745600,
+                                        "owned_by": "antigravity",
+                                        "context_window": INJECTED_CONTEXT_WINDOW,
+                                        "max_tokens": INJECTED_MAX_TOKENS
+                                    })
                         body = json.dumps(data).encode('utf-8')
                     except Exception as e:
                         print(f"Error parsing models JSON: {e}")

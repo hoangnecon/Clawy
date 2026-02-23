@@ -29,7 +29,7 @@ openclaw onboard --auth-choice custom-api-key \
     --custom-api-key antigravity \
     --custom-base-url http://localhost:8046/v1 \
     --custom-provider-id openai \
-    --custom-model-id gpt-4-turbo-preview \
+    --custom-model-id gemini-3.1-pro \
     --non-interactive \
     --accept-risk \
     --skip-channels \
@@ -43,7 +43,7 @@ echo "[3/4] Optimizing Context Compaction for Deep Context..."
 jq '.agents.defaults.compaction = {"mode": "default", "maxHistoryShare": 0.9, "reserveTokens": 4096, "keepRecentTokens": 64000}' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
 
 echo "[4/4] Setting Default Primary Model and Restarting Gateway..."
-openclaw config set agents.defaults.model.primary openai/gpt-4-turbo-preview
+openclaw config set agents.defaults.model.primary openai/gemini-3.1-pro
 openclaw gateway restart
 
 echo "======================================================"
