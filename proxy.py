@@ -105,6 +105,21 @@ def get_quota_for_email(account_email, target_model=None):
                 percentages[name] = model.get("percentage", 100)
                 
         target_model_clean = target_model.split("/")[-1] if target_model else None
+        
+        # Reverse map OpenClaw Telegram UI aliases back to actual Antigravity model names
+        alias_map = {
+            "my-opus": "claude-opus-4-6-thinking",
+            "my-sonnet": "claude-sonnet-4-6",
+            "my-gemini-3-flash": "gemini-3-flash",
+            "my-gemini-2.5-flash": "gemini-2.5-flash",
+            "my-gemini-3.1-pro": "gemini-3.1-pro",
+            "my-gemini-3.1-pro-high": "gemini-3.1-pro-high",
+            "my-gemini-3.1-pro-low": "gemini-3.1-pro-low"
+        }
+        
+        if target_model_clean in alias_map:
+            target_model_clean = alias_map[target_model_clean]
+            
         if target_model_clean and target_model_clean in percentages:
             percentage = percentages[target_model_clean]
         else:
