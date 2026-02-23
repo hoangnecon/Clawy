@@ -32,6 +32,34 @@ def get_current_account_id_and_email():
         
     return account_id, account_email
 
+def restrict_proxy_to_current_account():
+    try:
+        accounts_file = os.path.expanduser("~/.antigravity_tools/accounts.json")
+        if not os.path.exists(accounts_file):
+            return
+            
+        with open(accounts_file, 'r') as f:
+            data = json.load(f)
+            
+        curr_id = data.get("current_account_id")
+        if not curr_id:
+            return
+            
+        changed = False
+        for acc in data.get("accounts", []):
+            should_disable = (acc.get("id") != curr_id)
+            if acc.get("proxy_disabled") != should_disable:
+                acc["proxy_disabled"] = should_disable
+                changed = True
+                
+        if changed:
+            with open(accounts_file, 'w') as f:
+                json.dump(data, f, indent=2)
+            print(f"Isolated proxy to account: {curr_id}")
+            
+    except Exception as e:
+        print(f"Error isolating Antigravity account: {e}")
+
 def get_user_context():
     account_id, account_email = get_current_account_id_and_email()
     quota_str = ""
@@ -185,9 +213,11 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     del headers_dict["X-Account-Id"]
                     
                 # Enforce the selected GUI account by passing X-Account-Id to Antigravity
-                account_id, _ = get_current_account_id_and_email()
                 if account_id:
                     headers_dict['X-Account-Id'] = account_id
+                    
+            # Isolate the proxy to use specifically the current account ID
+            restrict_proxy_to_current_account()
 
             req = urllib.request.Request(url, data=post_data, headers=headers_dict, method='POST')
             with urllib.request.urlopen(req) as response:
