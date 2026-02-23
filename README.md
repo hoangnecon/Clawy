@@ -62,7 +62,7 @@ If you only have OpenClaw installed, you first need the proxy tool:
 If you prefer to know exactly what is happening to your system, here is the breakdown of the magic:
 
 1. **Starts the Bridge (`proxy.py`)**: It spins up a Python background process listening on port `8046`. This script forwards all traffic to Antigravity (`8045`) but intercepts the `/models` endpoint to manually inject the 128,000 token limit.
-2. **Onboards the Custom Provider**: It runs `openclaw onboard` using the `--custom-provider-id openai` flag. By masquerading as Native OpenAI (rather than a generic custom API), OpenClaw inherits robust routing logic while pointing at `http://localhost:8046/v1`. The script specifically configures `gemini-3.1-pro` as the target model.
+2. **Onboards the Custom Provider**: It runs `openclaw onboard` using the `--custom-provider-id antigravity` flag. By masquerading as Native OpenAI (rather than a generic custom API), OpenClaw inherits robust routing logic while pointing at `http://localhost:8046/v1`. The script specifically configures `gemini-3.1-pro` as the target model.
 3. **Disables Aggressive Context Pruning**: By default, OpenClaw features a "safeguard" mode that aggressively compacts (summarizes and deletes) your chat history to avoid token limits. Because you now have a massive 128k+ token window via Gemini, the script edits `~/.openclaw/openclaw.json` to disable "safeguard" and allow 90% history utilization, letting you retain deep context for massive projects.
 4. **Restarts the Daemon**: Applies the new Primary Model and restarts the `openclaw gateway`.
 

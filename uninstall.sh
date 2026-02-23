@@ -22,8 +22,8 @@ if [ -f ~/.openclaw/openclaw.json ]; then
     # Reset compaction back to safeguard
     jq '.agents.defaults.compaction = {"mode": "safeguard"}' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
     
-    # Remove the openai custom provider
-    jq 'del(.models.providers.openai)' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
+    # Remove the antigravity custom provider
+    jq 'del(.models.providers.antigravity) | del(.models.providers.openai)' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
 
     echo "✅ Removed custom providers and reset compaction."
 else
