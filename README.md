@@ -30,15 +30,18 @@ This lightweight bridge sits between OpenClaw and the Antigravity Manager. It in
 
 ## 🛠️ Step-by-Step Setup Guide
 
-### Phase 1: Prep Antigravity Manager
-1. Install **Antigravity Manager** on your machine.
-2. Sign in to your paid Google Gemini account within the manager's browser.
-3. Ensure the local proxy server is running. By default, it exposes the API at:
+### Phase 1: Prep Antigravity Manager (For New Users)
+If you only have OpenClaw installed, you first need the proxy tool:
+1. Download and install **Antigravity Tools** (v4.1.22+) from its official release source.
+2. Launch the application.
+3. Sign in to your Google account within the manager's embedded browser and ensure you have access to Google Gemini (preferably Advanced for the best coding experience).
+4. Start the local proxy server within the app. By default, it exposes the OpenAI-compatible API at:
    `http://localhost:8045/v1`
+   *(Verify it's running by checking the app's log or visiting the URL in a browser)*.
 
 ### Phase 2: Install the Bridge
 
-1. Clone this repository:
+1. Clone this repository to your computer:
    ```bash
    git clone https://github.com/YOUR_GITHUB_NAME/openclaw-antigravity-bridge.git
    cd openclaw-antigravity-bridge
@@ -79,10 +82,27 @@ Send a massive block of code to your OpenClaw Telegram bot or CLI interface. It 
 tail -f proxy.log
 ```
 
-**To stop the bridge:**
+**To stop the bridge manually:**
 ```bash
 lsof -ti:8046 | xargs kill -9
 ```
 
-**To uninstall:**
-Simply stop the proxy, edit your `~/.openclaw/openclaw.json` to point back to your default provider, and delete this folder. No permanent system files are modified outside of the standard OpenClaw json configs.
+### How to revert to normal OpenClaw?
+If you decide to stop using Antigravity Manager and want to revert to your standard developer API keys (e.g., official OpenAI, Anthropic, or standard Gemini API), follow these steps:
+
+1. **Run the Uninstaller:**
+   Inside the cloned folder, simply run:
+   ```bash
+   ./uninstall.sh
+   ```
+   *This automatically kills the Python proxy (port 8046) and safely strips the custom model routing and compaction changes from your `~/.openclaw/openclaw.json`.*
+
+2. **Re-Onboard your APIs:**
+   Tell OpenClaw to switch back to your normal keys by running the standard setup command:
+   ```bash
+   openclaw onboard
+   ```
+   Follow the interactive prompts to feed it your official `OPENAI_API_KEY` or `GEMINI_API_KEY`. It will seamlessly switch back to developer quotas without any lingering proxy interference.
+
+3. **Delete this repo:**
+   You can delete the `openclaw-antigravity-bridge` folder safely.
