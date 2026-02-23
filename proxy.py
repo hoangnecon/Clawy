@@ -73,7 +73,7 @@ def get_user_context():
         
     return f" - {account_email}{quota_str}"
 
-def get_quota_for_email(account_email):
+def get_quota_for_email(account_email, target_model=None):
     try:
         accounts_file = os.path.expanduser("~/.antigravity_tools/accounts.json")
         if not os.path.exists(accounts_file):
@@ -104,7 +104,11 @@ def get_quota_for_email(account_email):
             if name:
                 percentages[name] = model.get("percentage", 100)
                 
-        percentage = percentages.get("gemini-3.1-pro-high", percentages.get("gemini-3-pro-high", 100))
+        if target_model and target_model in percentages:
+            percentage = percentages[target_model]
+        else:
+            percentage = percentages.get("gemini-3.1-pro-high", percentages.get("gemini-3-pro-high", 100))
+            
         return f" - {percentage}%"
     except Exception as e:
         print(f"Error reading Antigravity quota: {e}")
@@ -182,11 +186,15 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         headers_dict = dict(self.headers)
         
         try:
+            target_model_name = None
             if self.path.startswith("/v1/chat/completions") or self.path.startswith("/v1/completions"):
                 # Strip old footnotes from chat history to prevent LLM hallucinations
                 try:
                     payload = json.loads(post_data)
                     modified = False
+                    if "model" in payload:
+                        target_model_name = payload["model"]
+                        
                     if "messages" in payload:
                         for msg in payload["messages"]:
                             if msg.get("role") == "assistant" and msg.get("content"):
@@ -213,6 +221,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     del headers_dict["X-Account-Id"]
                     
                 # Enforce the selected GUI account by passing X-Account-Id to Antigravity
+                account_id, _ = get_current_account_id_and_email()
                 if account_id:
                     headers_dict['X-Account-Id'] = account_id
                     
@@ -267,9 +276,10 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                         # Inspect buffer for the magic SSE finish
                         if b'finish_reason":"stop"' in buffer or b'finish_reason": "stop"' in buffer:
                             # We must inject our own valid SSE event right BEFORE we send this chunk
-                            context = get_quota_for_email(account_email)
-                            footnote = f'\\n\\n---\\n\\n**Account:** {account_email}{context}\\n'
-                            injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"gemini-3.1-pro"}}\n\n'.encode('utf-8')
+                            context = get_quota_for_email(account_email, target_model=target_model_name)
+                            model_display = f" ({target_model_name})" if target_model_name else ""
+                            footnote = f'\\n\\n---\\n\\n**Account:** {account_email}{context}{model_display}\\n'
+                            injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"{target_model_name or "gemini-3.1-pro"}"}}\n\n'.encode('utf-8')
                             
                             # Send injected HTTP chunk
                             self.wfile.write(f"{len(injected_sse):X}\r\n".encode())

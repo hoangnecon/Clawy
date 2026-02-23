@@ -1,5 +1,5 @@
 ----------------------------------------
-Exception occurred during processing of request from ('127.0.0.1', 62661)
+Exception occurred during processing of request from ('127.0.0.1', 62774)
 Traceback (most recent call last):
   File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 1321, in do_open
     h.request(req.get_method(), req.selector, req.data, headers,
@@ -54,7 +54,7 @@ Traceback (most recent call last):
   File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/http/server.py", line 484, in handle_one_request
     method()
     ~~~~~~^^
-  File "/Users/hoangnguyen142/Work/OC/openclaw-antigravity-bridge/proxy.py", line 121, in do_GET
+  File "/Users/hoangnguyen142/Work/OC/openclaw-antigravity-bridge/proxy.py", line 232, in do_POST
     with urllib.request.urlopen(req) as response:
          ~~~~~~~~~~~~~~~~~~~~~~^^^^^
   File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/urllib/request.py", line 187, in urlopen
