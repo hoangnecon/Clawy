@@ -1,1 +1,3 @@
 127.0.0.1 - - [23/Feb/2026 19:59:13] "POST /v1/chat/completions HTTP/1.1" 200 -
+127.0.0.1 - - [23/Feb/2026 20:01:45] "POST /v1/chat/completions HTTP/1.1" 429 -
+127.0.0.1 - - [23/Feb/2026 20:02:37] "POST /v1/chat/completions HTTP/1.1" 200 -
