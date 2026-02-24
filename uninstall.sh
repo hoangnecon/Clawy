@@ -20,7 +20,7 @@ fi
 echo "[2/3] Reverting OpenClaw Config to Defaults..."
 if [ -f ~/.openclaw/openclaw.json ]; then
     # Reset compaction back to safeguard and delete explicit model overrides, provider, and primary default
-    jq '.agents.defaults.compaction = {"mode": "safeguard"} | del(.agents.defaults.models["antigravity/gemini-3.1-pro", "openai/gemini-3.1-pro"]) | del(.models.providers.antigravity) | del(.agents.defaults.model.primary)' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
+    jq '.agents.defaults.compaction = {"mode": "safeguard"} | del(.agents.defaults.models["antigravity/gemini-3-flash", "antigravity/gemini-3.1-pro-high", "antigravity/gemini-3.1-pro-low", "antigravity/claude-opus-4-6-thinking", "antigravity/claude-sonnet-4-6", "antigravity/gemini-3.1-pro", "openai/gemini-3.1-pro"]) | del(.models.providers.antigravity) | del(.agents.defaults.model.primary)' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
     
     # Remove the antigravity and openai custom providers
     if [ -f ~/.openclaw/agents/main/agent/models.json ]; then
