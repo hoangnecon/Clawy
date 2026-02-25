@@ -81,14 +81,24 @@ jq '
   }
 ' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
 
-echo "[3/4] Optimizing Context Compaction for Deep Context..."
+echo "[3/5] Optimizing Context Compaction for Deep Context..."
 # Modify OpenClaw config to maximize context usage and disable aggressive pruning
 jq '.agents.defaults.compaction = {"mode": "default", "maxHistoryShare": 0.9, "reserveTokens": 4096, "keepRecentTokens": 64000}' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
 
-echo "[4/5] Setting Default Primary Model..."
+echo "[4/5] Registering Model Aliases for /model Switcher..."
+# Inject alias entries into agents.defaults.models so the /model command can list all 5 models
+jq '
+  .agents.defaults.models["antigravity/gemini-3-flash"]           = {"alias": "my-flash"} |
+  .agents.defaults.models["antigravity/gemini-3.1-pro-high"]      = {"alias": "my-pro-high"} |
+  .agents.defaults.models["antigravity/gemini-3.1-pro-low"]       = {"alias": "my-pro-low"} |
+  .agents.defaults.models["antigravity/claude-opus-4-6-thinking"] = {"alias": "my-opus"} |
+  .agents.defaults.models["antigravity/claude-sonnet-4-6"]        = {"alias": "my-sonnet"}
+' ~/.openclaw/openclaw.json > ~/.openclaw/openclaw.json.tmp && mv ~/.openclaw/openclaw.json.tmp ~/.openclaw/openclaw.json
+
+echo "[5/6] Setting Default Primary Model..."
 openclaw config set agents.defaults.model.primary antigravity/claude-opus-4-6-thinking
 
-echo "[5/5] Syncing Local Agent Web UI Models and Restarting Gateway..."
+echo "[6/6] Syncing Local Agent Web UI Models and Restarting Gateway..."
 mkdir -p ~/.openclaw/agents/main/agent
 cat << 'EOF' > ~/.openclaw/agents/main/agent/models.json
 {
