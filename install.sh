@@ -38,8 +38,8 @@ jq '
         "reasoning": false,
         "input": ["text"],
         "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-        "contextWindow": 977000,
-        "maxTokens": 8192
+        "contextWindow": 1048576,
+        "maxTokens": 65536
       },
       {
         "id": "gemini-3.1-pro-high",
@@ -47,8 +47,8 @@ jq '
         "reasoning": false,
         "input": ["text"],
         "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-        "contextWindow": 128000,
-        "maxTokens": 8192
+        "contextWindow": 1048576,
+        "maxTokens": 65536
       },
       {
         "id": "gemini-3.1-pro-low",
@@ -56,8 +56,8 @@ jq '
         "reasoning": false,
         "input": ["text"],
         "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-        "contextWindow": 128000,
-        "maxTokens": 8192
+        "contextWindow": 1048576,
+        "maxTokens": 65536
       },
       {
         "id": "claude-opus-4-6-thinking",
@@ -65,8 +65,8 @@ jq '
         "reasoning": true,
         "input": ["text"],
         "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-        "contextWindow": 195000,
-        "maxTokens": 8192
+        "contextWindow": 200000,
+        "maxTokens": 32000
       },
       {
         "id": "claude-sonnet-4-6",
@@ -74,8 +74,8 @@ jq '
         "reasoning": false,
         "input": ["text"],
         "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-        "contextWindow": 195000,
-        "maxTokens": 8192
+        "contextWindow": 1000000,
+        "maxTokens": 64000
       }
     ]
   }
@@ -114,8 +114,8 @@ cat << 'EOF' > ~/.openclaw/agents/main/agent/models.json
           "reasoning": false,
           "input": ["text"],
           "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-          "contextWindow": 977000,
-          "maxTokens": 8192
+          "contextWindow": 1048576,
+          "maxTokens": 65536
         },
         {
           "id": "gemini-3.1-pro-high",
@@ -123,8 +123,8 @@ cat << 'EOF' > ~/.openclaw/agents/main/agent/models.json
           "reasoning": false,
           "input": ["text"],
           "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-          "contextWindow": 128000,
-          "maxTokens": 8192
+          "contextWindow": 1048576,
+          "maxTokens": 65536
         },
         {
           "id": "gemini-3.1-pro-low",
@@ -132,8 +132,8 @@ cat << 'EOF' > ~/.openclaw/agents/main/agent/models.json
           "reasoning": false,
           "input": ["text"],
           "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-          "contextWindow": 128000,
-          "maxTokens": 8192
+          "contextWindow": 1048576,
+          "maxTokens": 65536
         },
         {
           "id": "claude-opus-4-6-thinking",
@@ -141,8 +141,8 @@ cat << 'EOF' > ~/.openclaw/agents/main/agent/models.json
           "reasoning": true,
           "input": ["text"],
           "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-          "contextWindow": 195000,
-          "maxTokens": 8192
+          "contextWindow": 200000,
+          "maxTokens": 32000
         },
         {
           "id": "claude-sonnet-4-6",
@@ -150,8 +150,8 @@ cat << 'EOF' > ~/.openclaw/agents/main/agent/models.json
           "reasoning": false,
           "input": ["text"],
           "cost": {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0},
-          "contextWindow": 195000,
-          "maxTokens": 8192
+          "contextWindow": 1000000,
+          "maxTokens": 64000
         }
       ]
     }
@@ -164,7 +164,7 @@ openclaw gateway restart
 echo "======================================================"
 echo "🎉 Setup Complete!"
 echo "Your OpenClaw instance is now paired with Antigravity Manager."
-echo "Context Limit: 128,000 tokens"
+echo "Context Limits: Gemini 1M | Claude Opus 200K | Claude Sonnet 1M"
 echo "Proxy logs are located at: $PROXY_LOG"
 echo "You can test it by messaging your Telegram bot."
 echo "======================================================"
