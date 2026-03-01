@@ -216,6 +216,12 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     modified = False
                     if "model" in payload:
                         target_model_name = payload["model"]
+                    if "reasoning" in payload:
+                        del payload["reasoning"]
+                        modified = True
+                    if "thinking" in payload:
+                        del payload["thinking"]
+                        modified = True
                     if "reasoning_effort" in payload:
                         del payload["reasoning_effort"]
                         modified = True
