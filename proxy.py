@@ -198,7 +198,16 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(error_body)
         except Exception as e:
-            print(f"Error proxying GET: {e}")
+            print(f"Error proxying GET: {e}", flush=True)
+            try:
+                self.send_response(502)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                error_body = json.dumps({"error": {"message": f"Bridge Proxy Error: {e}", "type": "proxy_error", "code": 502}})
+                self.wfile.write(error_body.encode('utf-8'))
+            except:
+                pass
+
             
     def do_POST(self):
         url = f"http://{TARGET_HOST}:{TARGET_PORT}{self.path}"
@@ -362,7 +371,15 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             except:
                 pass
         except Exception as e:
-            print(f"Error proxying POST: {e}")
+            print(f"Error proxying POST: {e}", flush=True)
+            try:
+                self.send_response(502)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                error_body = json.dumps({"error": {"message": f"Bridge Proxy Error: {e}", "type": "proxy_error", "code": 502}})
+                self.wfile.write(error_body.encode('utf-8'))
+            except:
+                pass
 
     def _write_chunk(self, data):
         """Helper to write a safe HTTP chunk."""
