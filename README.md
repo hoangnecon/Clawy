@@ -47,17 +47,21 @@ If you only have OpenClaw installed, you first need the proxy tool:
    cd openclaw-antigravity-bridge
    ```
 
-2. Make the installer executable:
+2. Run the automated installer for your operating system:
+
+   **🍎 For macOS / 🐧 Linux:**
    ```bash
    chmod +x install.sh
-   ```
-
-3. Run the automated installer:
-   ```bash
    ./install.sh
    ```
 
-### 🧠 What is `install.sh` actually doing under the hood?
+   **🪟 For Windows:**
+   Simply double-click `install.bat` or run it inside Command Prompt/PowerShell:
+   ```cmd
+   install.bat
+   ```
+
+### 🧠 What is the installer actually doing under the hood?
 
 If you prefer to know exactly what is happening to your system, here is the breakdown of the magic:
 
@@ -78,22 +82,27 @@ Send a massive block of code to your OpenClaw Telegram bot or CLI interface. It 
 ## 🧰 Management & Uninstallation
 
 **To view the bridge logs:**
-```bash
-tail -f proxy.log
-```
+- macOS/Linux: `tail -f proxy.log`
+- Windows: Open `proxy.log` in Notepad.
 
 **To stop the bridge manually:**
-```bash
-lsof -ti:8046 | xargs kill -9
-```
+- macOS/Linux: `lsof -ti:8046 | xargs kill -9`
+- Windows: `FOR /F "tokens=5" %a IN ('netstat -aon ^| findstr :8046') DO taskkill /F /PID %a`
 
 ### How to revert to normal OpenClaw?
 If you decide to stop using Antigravity Manager and want to revert to your standard developer API keys (e.g., official OpenAI, Anthropic, or standard Gemini API), follow these steps:
 
 1. **Run the Uninstaller:**
-   Inside the cloned folder, simply run:
+   Inside the cloned folder, simply run the uninstall script for your OS.
+
+   **🍎 For macOS / 🐧 Linux:**
    ```bash
    ./uninstall.sh
+   ```
+
+   **🪟 For Windows:**
+   ```cmd
+   uninstall.bat
    ```
    *This automatically kills the Python proxy (port 8046) and safely strips the custom model routing and compaction changes from your `~/.openclaw/openclaw.json`.*
 
@@ -106,3 +115,4 @@ If you decide to stop using Antigravity Manager and want to revert to your stand
 
 3. **Delete this repo:**
    You can delete the `openclaw-antigravity-bridge` folder safely.
+
