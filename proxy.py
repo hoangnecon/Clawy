@@ -216,6 +216,19 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     modified = False
                     if "model" in payload:
                         target_model_name = payload["model"]
+                        
+                    # Sanitize newer standard OpenAI fields that might crash Antigravity (like Gemini API)
+                    if "max_completion_tokens" in payload:
+                        payload["max_tokens"] = payload.pop("max_completion_tokens")
+                        modified = True
+                    if "store" in payload:
+                        del payload["store"]
+                        modified = True
+                    if "stream_options" in payload:
+                        del payload["stream_options"]
+                        modified = True
+                        
+                    # Sanitize reasoning-specific metadata
                     if "reasoning" in payload:
                         del payload["reasoning"]
                         modified = True
@@ -229,6 +242,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                         del payload["thinking_budget"]
                         modified = True
                         
+
                     if "messages" in payload:
                         for msg in payload["messages"]:
                             if "thinkingSignature" in msg:
