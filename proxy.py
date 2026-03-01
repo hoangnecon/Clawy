@@ -216,8 +216,22 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     modified = False
                     if "model" in payload:
                         target_model_name = payload["model"]
+                    if "reasoning_effort" in payload:
+                        del payload["reasoning_effort"]
+                        modified = True
+                    if "thinking_budget" in payload:
+                        del payload["thinking_budget"]
+                        modified = True
+                        
                     if "messages" in payload:
                         for msg in payload["messages"]:
+                            if "thinkingSignature" in msg:
+                                del msg["thinkingSignature"]
+                                modified = True
+                            if "reasoningSignature" in msg:
+                                del msg["reasoningSignature"]
+                                modified = True
+                                
                             if msg.get("role") == "assistant" and msg.get("content"):
                                 content = msg["content"]
                                 if isinstance(content, str):
@@ -229,7 +243,12 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                                             msg["content"] = new_content if new_content else "..."
                                             modified = True
                                 elif isinstance(content, list):
+                                    # Strip thinking parts and footnotes
+                                    new_content = []
                                     for part in content:
+                                        if part.get("type") == "thinking" or part.get("type") == "reasoning":
+                                            modified = True
+                                            continue
                                         part_text = part.get("text", "")
                                         if part.get("type") == "text" and isinstance(part_text, str):
                                             idx = part_text.find("**Account:**")
@@ -239,11 +258,15 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                                                     new_text = part_text[:sep_idx].rstrip()
                                                     part["text"] = new_text if new_text else "..."
                                                     modified = True
+                                        new_content.append(part)
+                                    msg["content"] = new_content
+
                     if modified:
                         post_data = json.dumps(payload).encode('utf-8')
                         headers_dict['Content-Length'] = str(len(post_data))
                 except Exception as e:
                     print(f"Error parsing history: {e}")
+
                     
             # Isolate the proxy to use specifically the current account ID
             req = urllib.request.Request(url, data=post_data, headers=headers_dict, method='POST')
