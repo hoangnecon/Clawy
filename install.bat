@@ -28,58 +28,56 @@ echo ✅ Proxy running successfully on port 8046.
 echo [2/4] Injecting Custom Models into OpenClaw Registry...
 set "TEMP_SCRIPT=%TEMP%\oc_inject.py"
 
-(
-echo import json, os
-echo def update_json(path, modifier_func^):
-echo     p = os.path.expanduser(path^)
-echo     try:
-echo         with open(p, 'r', encoding='utf-8'^) as f: d = json.load(f^)
-echo     except: d = {}
-echo     modifier_func(d^)
-echo     os.makedirs(os.path.dirname(p^), exist_ok=True^)
-echo     with open(p, 'w', encoding='utf-8'^) as f: json.dump(d, f, indent=2^)
-echo.
-echo def mod_main(d^):
-echo     models = d.setdefault('models', {}^).setdefault('providers', {}^)
-echo     models['antigravity'] = {
-echo         'baseUrl': 'http://localhost:8046/v1',
-echo         'apiKey': 'antigravity',
-echo         'api': 'openai-completions',
-echo         'models': [
-echo             {'id': 'gemini-3-flash', 'name': 'gemini-3-flash (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536},
-echo             {'id': 'gemini-3.1-pro-high', 'name': 'gemini-3.1-pro-high (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536},
-echo             {'id': 'gemini-3.1-pro-low', 'name': 'gemini-3.1-pro-low (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536},
-echo             {'id': 'claude-opus-4-6-thinking', 'name': 'claude-opus-4-6-thinking (Antigravity)', 'reasoning': True, 'input': ['text'], 'contextWindow': 200000, 'maxTokens': 32000},
-echo             {'id': 'claude-sonnet-4-6', 'name': 'claude-sonnet-4-6 (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1000000, 'maxTokens': 64000}
-echo         ]
-echo     }
-echo     d.setdefault('agents', {}^).setdefault('defaults', {}^)['compaction'] = {'mode': 'default', 'maxHistoryShare': 0.9, 'reserveTokens': 4096, 'keepRecentTokens': 64000}
-echo     m = d.setdefault('agents', {}^).setdefault('defaults', {}^).setdefault('models', {}^)
-echo     m['antigravity/gemini-3-flash'] = {'alias': 'my-flash'}
-echo     m['antigravity/gemini-3.1-pro-high'] = {'alias': 'my-pro-high'}
-echo     m['antigravity/gemini-3.1-pro-low'] = {'alias': 'my-pro-low'}
-echo     m['antigravity/claude-opus-4-6-thinking'] = {'alias': 'my-opus'}
-echo     m['antigravity/claude-sonnet-4-6'] = {'alias': 'my-sonnet'}
-echo.
-echo update_json('~/.openclaw/openclaw.json', mod_main^)
-echo.
-echo def mod_ui(d^):
-echo     providers = d.setdefault('providers', {}^)
-echo     providers['antigravity'] = {
-echo         'baseUrl': 'http://localhost:8046/v1',
-echo         'apiKey': 'antigravity',
-echo         'api': 'openai-completions',
-echo         'models': [
-echo             {'id': 'gemini-3-flash', 'name': 'gemini-3-flash (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536},
-echo             {'id': 'gemini-3.1-pro-high', 'name': 'gemini-3.1-pro-high (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536},
-echo             {'id': 'gemini-3.1-pro-low', 'name': 'gemini-3.1-pro-low (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536},
-echo             {'id': 'claude-opus-4-6-thinking', 'name': 'claude-opus-4-6-thinking (Antigravity)', 'reasoning': True, 'input': ['text'], 'contextWindow': 200000, 'maxTokens': 32000},
-echo             {'id': 'claude-sonnet-4-6', 'name': 'claude-sonnet-4-6 (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1000000, 'maxTokens': 64000}
-echo         ]
-echo     }
-echo.
-echo update_json('~/.openclaw/agents/main/agent/models.json', mod_ui^)
-) > "%TEMP_SCRIPT%"
+echo import json, os > "%TEMP_SCRIPT%"
+echo def update_json(path, modifier_func^): >> "%TEMP_SCRIPT%"
+echo     p = os.path.expanduser(path^) >> "%TEMP_SCRIPT%"
+echo     try: >> "%TEMP_SCRIPT%"
+echo         with open(p, 'r', encoding='utf-8'^) as f: d = json.load(f^) >> "%TEMP_SCRIPT%"
+echo     except: d = {} >> "%TEMP_SCRIPT%"
+echo     modifier_func(d^) >> "%TEMP_SCRIPT%"
+echo     os.makedirs(os.path.dirname(p^), exist_ok=True^) >> "%TEMP_SCRIPT%"
+echo     with open(p, 'w', encoding='utf-8'^) as f: json.dump(d, f, indent=2^) >> "%TEMP_SCRIPT%"
+echo. >> "%TEMP_SCRIPT%"
+echo def mod_main(d^): >> "%TEMP_SCRIPT%"
+echo     models = d.setdefault('models', {}^).setdefault('providers', {}^) >> "%TEMP_SCRIPT%"
+echo     models['antigravity'] = { >> "%TEMP_SCRIPT%"
+echo         'baseUrl': 'http://localhost:8046/v1', >> "%TEMP_SCRIPT%"
+echo         'apiKey': 'antigravity', >> "%TEMP_SCRIPT%"
+echo         'api': 'openai-completions', >> "%TEMP_SCRIPT%"
+echo         'models': [ >> "%TEMP_SCRIPT%"
+echo             {'id': 'gemini-3-flash', 'name': 'gemini-3-flash (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'gemini-3.1-pro-high', 'name': 'gemini-3.1-pro-high (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'gemini-3.1-pro-low', 'name': 'gemini-3.1-pro-low (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'claude-opus-4-6-thinking', 'name': 'claude-opus-4-6-thinking (Antigravity)', 'reasoning': True, 'input': ['text'], 'contextWindow': 200000, 'maxTokens': 32000}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'claude-sonnet-4-6', 'name': 'claude-sonnet-4-6 (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1000000, 'maxTokens': 64000} >> "%TEMP_SCRIPT%"
+echo         ] >> "%TEMP_SCRIPT%"
+echo     } >> "%TEMP_SCRIPT%"
+echo     d.setdefault('agents', {}^).setdefault('defaults', {}^)['compaction'] = {'mode': 'default', 'maxHistoryShare': 0.9, 'reserveTokens': 4096, 'keepRecentTokens': 64000} >> "%TEMP_SCRIPT%"
+echo     m = d.setdefault('agents', {}^).setdefault('defaults', {}^).setdefault('models', {}^) >> "%TEMP_SCRIPT%"
+echo     m['antigravity/gemini-3-flash'] = {'alias': 'my-flash'} >> "%TEMP_SCRIPT%"
+echo     m['antigravity/gemini-3.1-pro-high'] = {'alias': 'my-pro-high'} >> "%TEMP_SCRIPT%"
+echo     m['antigravity/gemini-3.1-pro-low'] = {'alias': 'my-pro-low'} >> "%TEMP_SCRIPT%"
+echo     m['antigravity/claude-opus-4-6-thinking'] = {'alias': 'my-opus'} >> "%TEMP_SCRIPT%"
+echo     m['antigravity/claude-sonnet-4-6'] = {'alias': 'my-sonnet'} >> "%TEMP_SCRIPT%"
+echo. >> "%TEMP_SCRIPT%"
+echo update_json('~/.openclaw/openclaw.json', mod_main^) >> "%TEMP_SCRIPT%"
+echo. >> "%TEMP_SCRIPT%"
+echo def mod_ui(d^): >> "%TEMP_SCRIPT%"
+echo     providers = d.setdefault('providers', {}^) >> "%TEMP_SCRIPT%"
+echo     providers['antigravity'] = { >> "%TEMP_SCRIPT%"
+echo         'baseUrl': 'http://localhost:8046/v1', >> "%TEMP_SCRIPT%"
+echo         'apiKey': 'antigravity', >> "%TEMP_SCRIPT%"
+echo         'api': 'openai-completions', >> "%TEMP_SCRIPT%"
+echo         'models': [ >> "%TEMP_SCRIPT%"
+echo             {'id': 'gemini-3-flash', 'name': 'gemini-3-flash (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'gemini-3.1-pro-high', 'name': 'gemini-3.1-pro-high (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'gemini-3.1-pro-low', 'name': 'gemini-3.1-pro-low (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1048576, 'maxTokens': 65536}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'claude-opus-4-6-thinking', 'name': 'claude-opus-4-6-thinking (Antigravity)', 'reasoning': True, 'input': ['text'], 'contextWindow': 200000, 'maxTokens': 32000}, >> "%TEMP_SCRIPT%"
+echo             {'id': 'claude-sonnet-4-6', 'name': 'claude-sonnet-4-6 (Antigravity)', 'reasoning': False, 'input': ['text'], 'contextWindow': 1000000, 'maxTokens': 64000} >> "%TEMP_SCRIPT%"
+echo         ] >> "%TEMP_SCRIPT%"
+echo     } >> "%TEMP_SCRIPT%"
+echo. >> "%TEMP_SCRIPT%"
+echo update_json('~/.openclaw/agents/main/agent/models.json', mod_ui^) >> "%TEMP_SCRIPT%"
 
 python "%TEMP_SCRIPT%"
 del "%TEMP_SCRIPT%"
