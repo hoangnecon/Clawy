@@ -2,7 +2,7 @@ import sys
 import json
 import urllib.request
 import urllib.error
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 import os
 
 TARGET_HOST = "localhost"
@@ -129,6 +129,10 @@ def get_quota_for_email(account_email, target_model=None):
         return ""
 
 class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # Silence default request logging to keep console clean
+        pass
+
     def do_GET(self):
         url = f"http://{TARGET_HOST}:{TARGET_PORT}{self.path}"
         
@@ -193,6 +197,8 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_header(key, val)
             self.end_headers()
             self.wfile.write(error_body)
+        except Exception as e:
+            print(f"Error proxying GET: {e}")
             
     def do_POST(self):
         url = f"http://{TARGET_HOST}:{TARGET_PORT}{self.path}"
@@ -258,68 +264,76 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     elif lower_key not in ['connection']:
                         self.send_header(key, val)
                 
-                # If the upstream didn't chunk but we want to simulate streaming? 
-                # OpenClaw usually sets stream: true, so Antigravity replies with chunked encoding.
+                self.end_headers()
+
                 if not is_chunked:
                     # Just passthrough if not SSE chunked
-                    self.end_headers()
                     self.wfile.write(response.read())
                     return
 
-                self.end_headers()
-                
-                # We are processing HTTP chunked transfer from Antigravity.
-                # `urllib` auto-decodes the incoming chunks.
-                # Since we passed `Transfer-Encoding: chunked` to the client, we must manually re-encode the chunks!
+                # Efficiently process chunked response
                 buffer = b""
-                while True:
-                    chunk = response.read(1)
-                    if not chunk:
-                        if buffer:
-                            self.wfile.write(f"{len(buffer):X}\r\n".encode())
-                            self.wfile.write(buffer)
-                            self.wfile.write(b"\r\n")
-                        break
-                    
-                    buffer += chunk
-                    
-                    # Yield complete SSE events separated by double newlines
-                    if buffer.endswith(b"\n\n"):
-                        # Inspect buffer for the magic SSE finish
-                        if b'finish_reason":"stop"' in buffer or b'finish_reason": "stop"' in buffer:
-                            # We must inject our own valid SSE event right BEFORE we send this chunk
-                            context = get_quota_for_email(account_email, target_model=target_model_name)
-                            model_display = f" ({target_model_name})" if target_model_name else ""
-                            footnote = f'\\n\\n---\\n\\n**Account:** {account_email}{context}{model_display}\\n'
-                            injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"{target_model_name or "gemini-3.1-pro"}"}}\n\n'.encode('utf-8')
+                try:
+                    while True:
+                        # Read in larger chunks for better performance
+                        raw_data = response.read(4096)
+                        if not raw_data:
+                            if buffer:
+                                # Final flush of leftover data
+                                self._write_chunk(buffer)
+                            break
+                        
+                        buffer += raw_data
+                        
+                        # Process complete SSE events
+                        while b"\n\n" in buffer:
+                            event_end = buffer.find(b"\n\n") + 2
+                            event = buffer[:event_end]
+                            buffer = buffer[event_end:]
                             
-                            # Send injected HTTP chunk
-                            self.wfile.write(f"{len(injected_sse):X}\r\n".encode())
-                            self.wfile.write(injected_sse)
-                            self.wfile.write(b"\r\n")
-                        
-                        # Send actual HTTP chunk
-                        self.wfile.write(f"{len(buffer):X}\r\n".encode())
-                        self.wfile.write(buffer)
-                        self.wfile.write(b"\r\n")
-                        
-                        # Reset buffer for next SSE event
-                        buffer = b""
-                        
-                # Send the final zero-length chunk to close the HTTP stream
-                self.wfile.write(b"0\r\n\r\n")
+                            # Magic injection before stop
+                            if b'finish_reason":"stop"' in event or b'finish_reason": "stop"' in event:
+                                context = get_quota_for_email(account_email, target_model=target_model_name)
+                                model_display = f" ({target_model_name})" if target_model_name else ""
+                                footnote = f'\\n\\n---\\n\\n**Account:** {account_email}{context}{model_display}\\n'
+                                injected_sse = f'data: {{"id":"chatcmpl-proxy","choices":[{{"delta":{{"content":"{footnote}"}}}}],"model":"{target_model_name or "gemini-3.1-pro"}"}}\n\n'.encode('utf-8')
+                                self._write_chunk(injected_sse)
+                                
+                            self._write_chunk(event)
+                            
+                    # Final empty chunk
+                    self.wfile.write(b"0\r\n\r\n")
+                except (BrokenPipeError, ConnectionResetError):
+                    # Client disconnected, move on
+                    pass
                 
         except urllib.error.HTTPError as e:
-            error_body = e.read()
-            print(f"Antigravity API HTTPError: {e.code} - {error_body.decode('utf-8', errors='ignore')}", flush=True)
-            self.send_response(e.code)
-            for key, val in e.headers.items():
-                self.send_header(key, val)
-            self.end_headers()
-            self.wfile.write(error_body)
+            try:
+                error_body = e.read()
+                print(f"Antigravity API HTTPError: {e.code} - {error_body.decode('utf-8', errors='ignore')}", flush=True)
+                self.send_response(e.code)
+                for key, val in e.headers.items():
+                    self.send_header(key, val)
+                self.end_headers()
+                self.wfile.write(error_body)
+            except:
+                pass
+        except Exception as e:
+            print(f"Error proxying POST: {e}")
+
+    def _write_chunk(self, data):
+        """Helper to write a safe HTTP chunk."""
+        try:
+            self.wfile.write(f"{len(data):X}\r\n".encode())
+            self.wfile.write(data)
+            self.wfile.write(b"\r\n")
+            self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            raise # Let do_POST handle it
 
 if __name__ == '__main__':
     print(f"Starting OpenClaw AntiGravity Context Bridge on port {LISTEN_PORT} -> forwarding to {TARGET_HOST}:{TARGET_PORT}")
     print(f"Injecting context_window: {INJECTED_CONTEXT_WINDOW} and max_tokens: {INJECTED_MAX_TOKENS}")
-    httpd = HTTPServer(('127.0.0.1', LISTEN_PORT), ProxyHTTPRequestHandler)
+    # Use ThreadingHTTPServer for high concurrency
+    httpd = ThreadingHTTPServer(('127.0.0.1', LISTEN_PORT), ProxyHTTPRequestHandler)
     httpd.serve_forever()
