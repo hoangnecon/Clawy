@@ -140,7 +140,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
         
         try:
             req = urllib.request.Request(url, headers=headers_dict)
-            with urllib.request.urlopen(req) as response:
+            with urllib.request.urlopen(req, timeout=60) as response:
                 body = response.read()
                 
                 # Intercept /v1/models and inject context_window
@@ -299,7 +299,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
                     
             # Isolate the proxy to use specifically the current account ID
             req = urllib.request.Request(url, data=post_data, headers=headers_dict, method='POST')
-            with urllib.request.urlopen(req) as response:
+            with urllib.request.urlopen(req, timeout=60) as response:
                 self.send_response(response.status)
                 
                 is_chunked = False
